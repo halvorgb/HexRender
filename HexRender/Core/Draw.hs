@@ -15,9 +15,8 @@ import Data.Map as M
 -- Draws everythaangg.
 drawField :: HexState -> IO AssetMap
 drawField s@(f, m) = do
-  -- filter out the tiles and objects that are actually shown.
-
   
+  -- filter out the tiles and objects that are actually shown.  
   s' <- foldM (\mp fn -> fn (f', mp)) m [drawBG, drawTiles, drawBorders, drawObjects]
   SDL.flip fieldSurface
   return s'
@@ -41,18 +40,18 @@ drawBG :: HexState -> IO AssetMap
 drawBG (f, m) =
   case bg of
     Primitive (r, g, b, _) -> do
---      fillSurface bg r g b -- undefined
+      fillSurface fieldSurf p d r g b -- undefined
       return m
       
     NonPrimitive {npKeyable = asset} -> do
       (surface, m') <- getAsset asset m
-      drawImage fieldSurf surface position dimensions
+      drawImage fieldSurf surface p d
       return m'
   where
     fieldSurf = fFieldSurface f
     bg = fBackground f
-    dimensions = fFieldDimensions f
-    position = (0,0)
+    d = fFieldDimensions f
+    p = fFieldPosition f
 
 drawBorders :: HexState -> IO AssetMap
 drawBorders s@(f, m) =
@@ -76,7 +75,7 @@ drawObject :: HexState -> Object -> IO AssetMap
 drawObject s@(f, m) o = drawSprite s sprite position dimensions
   where
     sprite = oSprite o
-    position = oPosition o
+    position = tileToScreenCoordinate f $ oPosition o
     dimensions = fTileDimensions f
     
     -- more calculations with offset and scale etc.
@@ -86,7 +85,7 @@ drawTile :: HexState -> Tile -> IO AssetMap
 drawTile s@(f, m) t = drawSprite s sprite position dimensions
   where
     sprite = tSprite t
-    position = tileToScreenCoordinate f t
+    position = tileToScreenCoordinate f $ tPosition t
     dimensions = fTileDimensions f
     
 

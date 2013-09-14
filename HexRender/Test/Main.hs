@@ -2,7 +2,7 @@ module HexRender.Test.Main(main) where
 
 import Data.Map as M
 import Graphics.UI.SDL as SDL
-import Math.Geometry.Grid.Hexagonal
+import Math.Geometry.Grid.Hexagonal2
 import Math.Geometry.Grid
 import System.Random
 import Control.Monad.Trans.State
@@ -10,8 +10,10 @@ import Control.Monad
 import Data.List as L
 
 import HexRender.HexRender
-import HexRender.Core.Model
-import HexRender.Test.Tiles
+import HexRender.Core.Model as HexModel
+
+import HexRender.Test.Sprites
+import HexRender.Test.GameModel
 
 
 
@@ -30,28 +32,70 @@ main = do
   
   tiles <- randomTiles $ (indices grid)
   
-  s' <- render (setupTestField mainSurf (M.fromList tiles) grid, M.empty)
-  
-  --
-  waitEventBlocking >>= handleInput
-  --
-  shutdown s'
-  SDL.quit
+  gameLoop ((setupTestField mainSurf (M.fromList tiles) (M.fromList [object]) grid, M.empty), character)
   where
-    grid = hexHexGrid 8
+    grid = createGrid (11,22) (1008, 784) (64, 64)
+    object = ((0,0), testCharacterObject)
+
+    character = Character testCharacterObject
     
-    handleInput e = case e of
-      Quit -> return ()
-      _ -> waitEventBlocking >>= handleInput
+
+gameLoop :: GameState -> IO ()
+gameLoop s@(hs, c) = do
+  hs' <- render hs
+  waitEventBlocking >>= (handleInput (hs', c))
+    
+    
+    
+    
+handleInput :: GameState -> Event -> IO ()
+handleInput s@(hs, c) e = case e of
+  Quit -> shutdownTest s
+  (KeyDown (Keysym key _ char)) -> 
+    case (key, char) of
+      (SDLK_a,_) -> gameLoop $ handleMovement s DownLeft
+      (SDLK_q,_) -> gameLoop $ handleMovement s UpLeft
+      (SDLK_d,_) -> gameLoop $ handleMovement s DownRight
+      (SDLK_e,_) -> gameLoop $ handleMovement s UpRight
+      (SDLK_s,_) -> gameLoop $ handleMovement s Down
+      (SDLK_w,_) -> gameLoop $ handleMovement s Up
+      _ -> waitEventBlocking >>= (handleInput s)
+  _ -> waitEventBlocking >>= (handleInput s)
+  
+
+handleMovement :: GameState -> HexModel.Direction -> GameState
+handleMovement s@((f, _), c) dir =
+  maybe s ( moveCharacter s) t
+  where
+    t = tileFromDirection (oPosition $ cObject c) dir f 
+
+moveCharacter :: GameState -> Tile -> GameState
+moveCharacter ((f,a), c) t = ((newField, a), Character newObject)
+  where
+    oldCharacterPos = oPosition $ cObject c
+    newObject = (cObject c) { oPosition = p}
+    newField = f { fObjects = M.insert p newObject $ M.delete oldCharacterPos $ fObjects f }
+    p = tPosition t
+
+shutdownTest :: GameState ->  IO ()
+shutdownTest s@(hs, c) = do
+  shutdown hs
+  SDL.quit
       
-      
-setupTestField :: SDL.Surface -> M.Map Position Tile -> HexHexGrid ->  Field
-setupTestField surf tiles grid  = Field { fFieldDimensions = (992, 992),
+  
+  
+  
+  
+  
+  
+  -- helper functions
+setupTestField :: SDL.Surface -> M.Map Position Tile -> M.Map Position Object-> RectHexGrid ->  Field
+setupTestField surf tiles objects grid  = Field { fFieldDimensions = (1024, 800),
                                     fFieldSurface = surf,
-                                    fFieldPosition = (32, 32),
+                                    fFieldPosition = (16, 16),
                                     fTileDimensions = (64, 64),
                                     fTiles = tiles,
-                                    fObjects = M.empty,
+                                    fObjects = objects,
                                     fGrid = grid,
                                     fBackground = Primitive (0, 0, 0, 0),
                                     fTileBorder = NoBorder

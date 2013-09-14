@@ -3,7 +3,7 @@ module HexRender.Core.Model where
 import Graphics.UI.SDL as SDL
 import qualified Data.Map as M
 
-import Math.Geometry.Grid.Hexagonal
+import Math.Geometry.Grid.Hexagonal2
 
 type Position = (Int, Int)
 type Offset = (Int, Int)
@@ -24,7 +24,7 @@ data Asset = ImageAsset SDL.Surface | SoundAsset Int -- temporary PLACEholDER in
 
 
 data ZLevel = Zero | One | Two | Three | Four
-            deriving(Bounded)
+            deriving(Bounded, Eq)
 
 data Resource = Primitive RGBA | NonPrimitive { npKeyable :: AssetKeyable }
             deriving (Eq, Show)
@@ -32,8 +32,9 @@ data Resource = Primitive RGBA | NonPrimitive { npKeyable :: AssetKeyable }
 data LightMask = Opaque | Transparent | LightSource LightRadius
                deriving (Eq)
                         
-data Orientation = Top | TopRight | BottomRight | Bottom | BottomLeft | TopLeft 
-                 deriving (Eq)
+                          
+data Direction = Up | Down | UpRight | UpLeft | DownRight | DownLeft
+               deriving(Eq)
 
 
 data TileBorder = NoBorder | 
@@ -51,10 +52,10 @@ data Object = Object { oSprite :: Resource,
                        oOffset :: Offset,
                        oScale :: Double,
                        oZLevel :: ZLevel,
-                       oOrientation :: Orientation,
+                       oOrientation :: Direction,
                        oLightMask :: LightMask
                      }
-              
+            deriving (Eq)
                    
 -- Field is a collection of tiles, objects and lightsources. Everything that is rendered.
 data Field = Field { fFieldDimensions :: Dimensions,
@@ -63,7 +64,7 @@ data Field = Field { fFieldDimensions :: Dimensions,
                      fTileDimensions :: Dimensions,
                      fTiles :: M.Map Position Tile,
                      fObjects :: M.Map Position Object,
-                     fGrid :: HexHexGrid,
+                     fGrid :: RectHexGrid,
                      fBackground :: Resource,
                      fTileBorder :: TileBorder
                    }
