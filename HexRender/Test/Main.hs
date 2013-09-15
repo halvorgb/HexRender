@@ -33,7 +33,7 @@ main = do
   
   SDL.flip mainSurf
   
-  tiles <- randomTiles $ (indices grid)
+  tiles <- randomTiles $ indices grid
   
   gameLoop ((setupTestField mainSurf (M.fromList tiles) (M.fromList [object]) grid, M.empty), character)
   where
@@ -46,7 +46,7 @@ main = do
 gameLoop :: GameState -> IO ()
 gameLoop s@(hs, c) = do
   hs' <- render hs
-  waitEventBlocking >>= (handleInput (hs', c))
+  waitEventBlocking >>= handleInput (hs', c)
     
     
     
@@ -62,8 +62,8 @@ handleInput s@(hs, c) e = case e of
       (SDLK_e,_) -> gameLoop $ handleMovement s UpRight
       (SDLK_s,_) -> gameLoop $ handleMovement s Down
       (SDLK_w,_) -> gameLoop $ handleMovement s Up
-      _ -> waitEventBlocking >>= (handleInput s)
-  _ -> waitEventBlocking >>= (handleInput s)
+      _ -> waitEventBlocking >>= handleInput s
+  _ -> waitEventBlocking >>= handleInput s
   
 
 handleMovement :: GameState -> HexModel.Direction -> GameState
@@ -83,7 +83,7 @@ moveCharacter gs@((f,a), c) t =
     oldCharacterPos = oPosition oldObject
     newCharacterPos = tPosition t
     newObject = oldObject { oPosition = newCharacterPos}
-    newField = f { fObjects = M.insertWith (\o os -> o ++os) newCharacterPos [newObject] $ 
+    newField = f { fObjects = M.insertWith (++) newCharacterPos [newObject] $ 
                               
                               M.update (\os -> let os' = L.delete oldObject os
                                                in if L.null os'

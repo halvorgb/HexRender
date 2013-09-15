@@ -56,7 +56,8 @@ drawBG (f, m) =
 drawBorders :: HexState -> IO AssetMap
 drawBorders s@(f, m) =
   case border of
-    NoBorder -> return m
+    NoBorder -> 
+      return m
     TileBorder thickness (r, g, b, a) -> do
       -- mapM_ drawHexagons@ tiles
       return m

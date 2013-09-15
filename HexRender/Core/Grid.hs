@@ -31,7 +31,7 @@ tileToScreenCoordinate field tilePos@(tx, ty)
     -- https://github.com/mhwombat/grid/wiki/Hexagonal-tiles-%28alternative-orientation%29 rectangular.
     -- assuming tdx == tdy
     xGrowth = fromIntegral tdx - (fromIntegral tdx / (2.0 * sqrt 3))
-    x = round (fromIntegral (tx) * xGrowth) + fx
+    x = round (fromIntegral tx * xGrowth) + fx
     y = (rows - 1 - ty)*tdy + (1-tx)*halftdy + fy
     
     outOfBounds = 
@@ -72,10 +72,10 @@ visionRadius :: Position -> HexGrid -> Int -> Field -> [Position]
 visionRadius origin@(x,y) grid strength f =
   L.foldl (\ts t -> if visionBlocked (minimalPaths grid origin t) f
                   then ts
-                  else (t:ts)) [origin] allVisible
+                  else t:ts) [origin] allVisible
   where
     tempGrid = hexHexGrid strength
-    allVisible = L.filter (\p -> contains grid p) $ L.map (\(x',y') -> (x+x', y+y')) $ indices tempGrid
+    allVisible = L.filter (contains grid) $ L.map (\(x',y') -> (x+x', y+y')) $ indices tempGrid
     
 visionBlocked :: [[Position]] -> Field -> Bool
 visionBlocked [] _ = True

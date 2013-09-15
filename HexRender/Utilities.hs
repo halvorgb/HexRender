@@ -29,7 +29,7 @@ createGrid gridDimensions@(rows, cols) fieldDimensions@(fdx, fdy) tileDimensions
   | otherwise = error "Error: Couldn't create grid, did not pass the dimension check. (Probably not enough room given to render the grid)"
   where
     xGrowth = fromIntegral tdx - (fromIntegral tdx/ (2.0 * sqrt 3))
-    minWidth = round ((fromIntegral cols) * xGrowth)
+    minWidth = round (fromIntegral cols * xGrowth)
     minHeight = rows * tdy + div tdy 2
     
     gridFits = fdx > minWidth && fdy > minHeight
