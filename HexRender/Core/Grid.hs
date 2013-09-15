@@ -1,26 +1,14 @@
-module HexRender.Core.Grid (createGrid, tileToScreenCoordinate, filterIllumination, tileFromDirection) where
+module HexRender.Core.Grid (tileToScreenCoordinate, filterIllumination) where
 
 import Math.Geometry.Grid.Hexagonal2
 import Math.Geometry.Grid as G
 
 import HexRender.Core.Model as HexModel
+import HexRender.Utilities
 
 import Data.List as L
 import Data.Map as M
-
--- "safely" creates a grid, not used by anything yet.
-createGrid :: Dimensions -> Dimensions -> Dimensions -> RectHexGrid
-createGrid gridDimensions@(rows, cols) fieldDimensions@(fdx, fdy) tileDimensions@(tdx, tdy)
-  | gridFits && square  = rectHexGrid rows cols
-  | otherwise = error "Error: Couldn't create grid, did not pass the dimension check. (Probably not enough room given to render the grid)"
-  where
-    xGrowth = fromIntegral tdx - (fromIntegral tdx/ (2.0 * sqrt 3))
-    minWidth = round ((fromIntegral cols) * xGrowth)
-    minHeight = rows * tdy + div tdy 2
-    
-    gridFits = fdx > minWidth && fdy > minHeight
-    square = tdx == tdy
-    
+import Data.Maybe    
 -- når man blitter til en surface som ikke er like stor som "videosurface", bruker man absolutte posisjoner eller relative posisjoner?
 -- TODO: Ta høyde for at ikke hele fieldet ikke vises samtidig? (Wrapping)
 tileToScreenCoordinate :: Field -> Position -> Position
@@ -53,28 +41,7 @@ tileToScreenCoordinate field tilePos@(tx, ty)
       y < fy
       
       
-    
--- returns the tile that can be reached from the input tile given the direction, if it is in the grid
-tileFromDirection :: Position -> HexModel.Direction -> Field -> Maybe Tile
-tileFromDirection origin@(x,y) direction f =
-  M.lookup target tiles
-  where
-    tiles = fTiles f
-    target = case direction of
-      Up ->   (x,y+1)
-      Down -> (x, y-1)
       
-      UpRight ->  (x+1,y)
-      DownLeft -> (x-1, y)
-      
-      DownRight -> (x+1, y-1)
-      UpLeft ->    (x-1, y+1)
-      
-      
-      
-      
-
-
 -- returns a field with non-illuminated tiles filtered out.
 filterIllumination :: Field -> Field
 filterIllumination f =
@@ -88,38 +55,41 @@ filterIllumination f =
     g =  fGrid f
     
     oPoses = L.foldl' (\ps (p,o) -> case o of
-                          Object {oLightMask = LightSource r} ->  L.union ps $ lightRadius p g r tm
+                          Object {oLightMask = LightSource r} ->  L.union ps $ visionRadius p g r f
                           _ -> ps
-                      ) [] $ M.toList om
+                      ) [] $ concatMap (\(p, os) -> zip (repeat p) os) $ M.toList om
              
     otPoses = L.foldl (\ps (p, t) -> case t of
-                          Tile {tLightMask = LightSource r} -> L.union ps $ lightRadius p g r tm
+                          Tile {tLightMask = LightSource r} -> L.union ps $ visionRadius p g r f
                           _ -> ps
                       ) oPoses $ M.toList tm
                        
 
--- returs a list of tiles illuminated by the first tile
--- TODO: Logic for opaque tiles etc.
-lightRadius :: Position -> RectHexGrid -> Int -> M.Map Position Tile ->  [Position]
-lightRadius origin grid strength  tileMap =
-  lightRadii [] [origin] grid strength gridSize tileMap
+
+
+
+visionRadius :: Position -> HexGrid -> Int -> Field -> [Position]
+visionRadius origin@(x,y) grid strength f =
+  L.foldl (\ts t -> if visionBlocked (minimalPaths grid origin t) f
+                  then ts
+                  else (t:ts)) [origin] allVisible
   where
-    gridSize = G.size grid
+    tempGrid = hexHexGrid strength
+    allVisible = L.filter (\p -> contains grid p) $ L.map (\(x',y') -> (x+x', y+y')) $ indices tempGrid
     
--- Expands to neighbours for each strength of original lightSource.
--- Future: Handle lightsources encountered here? cheaper perhaps
-lightRadii :: [Position] -> [Position] -> RectHexGrid -> Int -> Dimensions -> M.Map Position Tile -> [Position]
-lightRadii pP                nP            _     1        _       _        = L.union pP nP
-lightRadii previousPositions nextPositions grid strength gridSize tileMap
-  | L.null nonOpaque = L.union previousPositions nextPositions
-  | otherwise = 
-    lightRadii (nextPositions ++ previousPositions) unvisited grid (strength-1) gridSize tileMap
+visionBlocked :: [[Position]] -> Field -> Bool
+visionBlocked [] _ = True
+visionBlocked (path:paths) f =
+  if blocked 
+  then visionBlocked paths f
+  else False
   where
-    nonOpaque = L.filter (\p -> case M.lookup p tileMap of
-                             Just (Tile {tLightMask = Opaque }) -> False
-                             _ -> True
-                         ) nextPositions
-                
-                
-    neighbourTiles = L.foldl' (\ps p -> L.union ps $ neighbours grid p) [] nonOpaque
-    unvisited = neighbourTiles L.\\ previousPositions
+    blocked = any (\p -> 
+                    case M.lookup p $ fTiles f of
+                      Just t -> tLightMask t == Opaque
+                      _ -> False
+                  )  $ init path
+              
+    isSingle :: [Position] -> Bool
+    isSingle [p] = True
+    isSingle _   = False

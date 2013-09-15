@@ -1,16 +1,19 @@
 module HexRender.Test.Main(main) where
 
 import Data.Map as M
-import Graphics.UI.SDL as SDL
-import Math.Geometry.Grid.Hexagonal2
-import Math.Geometry.Grid
+import Data.List as L
 import System.Random
 import Control.Monad.Trans.State
 import Control.Monad
-import Data.List as L
+
+import Graphics.UI.SDL as SDL
+
+import Math.Geometry.Grid
 
 import HexRender.HexRender
+import HexRender.Utilities
 import HexRender.Core.Model as HexModel
+
 
 import HexRender.Test.Sprites
 import HexRender.Test.GameModel
@@ -35,7 +38,7 @@ main = do
   gameLoop ((setupTestField mainSurf (M.fromList tiles) (M.fromList [object]) grid, M.empty), character)
   where
     grid = createGrid (11,22) (1008, 784) (64, 64)
-    object = ((0,0), testCharacterObject)
+    object = ((0,0), [testCharacterObject])
 
     character = Character testCharacterObject
     
@@ -70,12 +73,24 @@ handleMovement s@((f, _), c) dir =
     t = tileFromDirection (oPosition $ cObject c) dir f 
 
 moveCharacter :: GameState -> Tile -> GameState
-moveCharacter ((f,a), c) t = ((newField, a), Character newObject)
+moveCharacter gs@((f,a), c) t = 
+  case t of
+    Tile {tLightMask = Opaque} -> gs
+    _ ->  ((newField, a), Character newObject)
   where
-    oldCharacterPos = oPosition $ cObject c
-    newObject = (cObject c) { oPosition = p}
-    newField = f { fObjects = M.insert p newObject $ M.delete oldCharacterPos $ fObjects f }
-    p = tPosition t
+    
+    oldObject = cObject c
+    oldCharacterPos = oPosition oldObject
+    newCharacterPos = tPosition t
+    newObject = oldObject { oPosition = newCharacterPos}
+    newField = f { fObjects = M.insertWith (\o os -> o ++os) newCharacterPos [newObject] $ 
+                              
+                              M.update (\os -> let os' = L.delete oldObject os
+                                               in if L.null os'
+                                                  then Nothing
+                                                  else Just os') 
+                              oldCharacterPos $ fObjects f }
+
 
 shutdownTest :: GameState ->  IO ()
 shutdownTest s@(hs, c) = do
@@ -89,16 +104,16 @@ shutdownTest s@(hs, c) = do
   
   
   -- helper functions
-setupTestField :: SDL.Surface -> M.Map Position Tile -> M.Map Position Object-> RectHexGrid ->  Field
+setupTestField :: SDL.Surface -> M.Map Position Tile -> M.Map Position [Object]-> HexGrid ->  Field
 setupTestField surf tiles objects grid  = Field { fFieldDimensions = (1024, 800),
-                                    fFieldSurface = surf,
-                                    fFieldPosition = (16, 16),
-                                    fTileDimensions = (64, 64),
-                                    fTiles = tiles,
-                                    fObjects = objects,
-                                    fGrid = grid,
-                                    fBackground = Primitive (0, 0, 0, 0),
-                                    fTileBorder = NoBorder
+                                                  fFieldSurface = surf,
+                                                  fFieldPosition = (16, 16),
+                                                  fTileDimensions = (64, 64),
+                                                  fTiles = tiles,
+                                                  fObjects = objects,
+                                                  fGrid = grid,
+                                                  fBackground = Primitive (0, 0, 0, 0),
+                                                  fTileBorder = NoBorder
                             }
                       
                       

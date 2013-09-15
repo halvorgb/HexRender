@@ -14,6 +14,8 @@ type ResourcePath = String
 
 type HexState = (Field, AssetMap)
                 
+type HexGrid = RectHexGrid
+
 type AssetMap = M.Map AssetKey Asset
 type AssetKey = String
 data AssetKeyable = Image ResourcePath | Sound ResourcePath
@@ -34,7 +36,7 @@ data LightMask = Opaque | Transparent | LightSource LightRadius
                         
                           
 data Direction = Up | Down | UpRight | UpLeft | DownRight | DownLeft
-               deriving(Eq)
+               deriving(Bounded, Eq, Show)
 
 
 data TileBorder = NoBorder | 
@@ -63,8 +65,8 @@ data Field = Field { fFieldDimensions :: Dimensions,
                      fFieldPosition :: Position,
                      fTileDimensions :: Dimensions,
                      fTiles :: M.Map Position Tile,
-                     fObjects :: M.Map Position Object,
-                     fGrid :: RectHexGrid,
+                     fObjects :: M.Map Position [Object],
+                     fGrid :: HexGrid,
                      fBackground :: Resource,
                      fTileBorder :: TileBorder
                    }

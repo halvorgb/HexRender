@@ -1,4 +1,4 @@
-module HexRender.HexRender (createGrid, render, shutdown, tileFromDirection) where
+module HexRender.HexRender (render, shutdown) where
 
 import HexRender.Core.Model
 import HexRender.Core.Assets
@@ -19,13 +19,3 @@ render s@(f, _) = do
 -- unload resources.
 shutdown :: HexState -> IO ()
 shutdown = freeField 
-
-
-
--- Helpful safe functions.
-createGrid :: Dimensions -> Dimensions -> Dimensions -> RectHexGrid
-createGrid = G.createGrid
-
--- Yep.
-tileFromDirection :: Position -> Direction -> Field -> Maybe Tile
-tileFromDirection = G.tileFromDirection

@@ -32,7 +32,7 @@ drawTiles :: HexState -> IO AssetMap
 drawTiles (f, m) = foldM (\m' -> drawTile (f, m')) m $ M.elems $ fTiles f
   
 drawObjects :: HexState -> IO AssetMap
-drawObjects (f, m) = foldM (\m' -> drawObject (f, m')) m $ M.elems $ fObjects f
+drawObjects (f, m) = foldM (\m' -> drawObject (f, m')) m $ concat $ M.elems $ fObjects f
 
 -- draws background, always first.
 -- Force stretch? psht.

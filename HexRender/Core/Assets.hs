@@ -22,7 +22,7 @@ getAsset r m =
 freeField :: HexState -> IO ()
 freeField (f, m) = do
   mapM_ (freeResource m . tSprite . snd) $ M.toList $ fTiles f
-  mapM_ (freeResource m . oSprite . snd) $ M.toList $ fObjects f
+  mapM_ (freeResource m . oSprite) $ concat $ M.elems $ fObjects f
   freeResource m $ fBackground f
 
   
