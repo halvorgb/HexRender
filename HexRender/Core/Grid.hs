@@ -71,8 +71,9 @@ filterIllumination f =
 visionRadius :: Position -> HexGrid -> Int -> Field -> [Position]
 visionRadius origin@(x,y) grid strength f =
   L.foldl (\ts t -> if visionBlocked (minimalPaths grid origin t) f
-                  then ts
-                  else t:ts) [origin] allVisible
+                    then ts
+                    else t:ts
+          ) [origin] allVisible
   where
     tempGrid = hexHexGrid strength
     allVisible = L.filter (contains grid) $ L.map (\(x',y') -> (x+x', y+y')) $ indices tempGrid
@@ -89,7 +90,3 @@ visionBlocked (path:paths) f =
                       Just t -> tLightMask t == Opaque
                       _ -> False
                   )  $ init path
-              
-    isSingle :: [Position] -> Bool
-    isSingle [p] = True
-    isSingle _   = False

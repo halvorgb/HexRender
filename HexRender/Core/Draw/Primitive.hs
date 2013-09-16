@@ -17,7 +17,7 @@ fillSurface :: SDL.Surface -> Position -> Dimensions -> Int -> Int -> Int -> IO 
 fillSurface targetSurf p@(x,y) d@(w, h) r g b = do
   let targetRect = Just (SDL.Rect x y w h)
   pixel <- (mapRGB . surfaceGetPixelFormat) targetSurf r' g' b'
-  _ <- SDL.fillRect targetSurf targetRect pixel
+  SDL.fillRect targetSurf targetRect pixel
   return ()
   where
     r' = fromIntegral r :: Word8

@@ -22,6 +22,7 @@ tileFromDirection origin@(x,y) direction f =
       DownRight -> (x+1, y-1)
       UpLeft ->    (x-1, y+1)
       
+
 -- "safely" creates a grid, not used by anything yet.
 createGrid :: Dimensions -> Dimensions -> Dimensions -> HexGrid
 createGrid gridDimensions@(rows, cols) fieldDimensions@(fdx, fdy) tileDimensions@(tdx, tdy)

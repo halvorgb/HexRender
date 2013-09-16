@@ -40,7 +40,7 @@ drawBG :: HexState -> IO AssetMap
 drawBG (f, m) =
   case bg of
     Primitive (r, g, b, _) -> do
-      fillSurface fieldSurf p d r g b -- undefined
+      fillSurface fieldSurf p d r g b
       return m
       
     NonPrimitive {npKeyable = asset} -> do

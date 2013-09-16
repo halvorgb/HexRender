@@ -48,6 +48,7 @@ data Tile = Tile { tSprite :: Resource,
                    tPosition :: Position, 
                    tLightMask :: LightMask
                  }
+          deriving(Eq)
             
 data Object = Object { oSprite :: Resource,
                        oPosition :: Position,
