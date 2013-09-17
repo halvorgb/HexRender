@@ -39,14 +39,15 @@ main = do
   gtMap <- randomLevel grid
   let (cPos,_) = fromJust $ L.find (\(_,gt) -> gtType gt /= Rock) $ M.toAscList gtMap
   let object = testCharacterObject { oPosition = cPos }
+  let char = Character object
   let oMap = M.fromList [(cPos, [object])]
   let tMap = M.map gtTile gtMap
-  gameLoop ((setupTestField mainSurf tMap oMap grid, M.empty), Game gtMap character)
+  gameLoop ((setupTestField mainSurf tMap oMap grid, M.empty), Game gtMap char)
   where
     grid = createGrid (11,21) (1008, 784) (64, 64)
 --    object = (oPosition $ cObject character, [testCharacterObject])
 
-    character = Character testCharacterObject
+--    character = Character testCharacterObject
     
 
 gameLoop :: GameState -> IO ()

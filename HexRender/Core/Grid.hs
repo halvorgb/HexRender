@@ -59,7 +59,7 @@ filterIllumination f =
                           _ -> ps
                       ) [] $ concatMap (\(p, os) -> zip (repeat p) os) $ M.toList om
              
-    otPoses = L.foldl (\ps (p, t) -> case t of
+    otPoses = L.foldl' (\ps (p, t) -> case t of
                           Tile {tLightMask = LightSource r} -> L.union ps $ visionRadius p g r f
                           _ -> ps
                       ) oPoses $ M.toList tm
@@ -70,7 +70,7 @@ filterIllumination f =
 
 visionRadius :: Position -> HexGrid -> Int -> Field -> [Position]
 visionRadius origin@(x,y) grid strength f =
-  L.foldl (\ts t -> if visionBlocked (minimalPaths grid origin t) f
+  L.foldl' (\ts t -> if visionBlocked (minimalPaths grid origin t) f
                     then ts
                     else t:ts
           ) [origin] allVisible

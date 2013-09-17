@@ -59,7 +59,7 @@ runCA ca f =
 b56s23456 :: HexGrid -> CellularAutomata -> Position -> CAState -> CAState
 b56s23456 g m p state =
   case state of
-    Alive -> if adjCellsLiving >= 2
+    Alive -> if adjCellsLiving >= 1
              then Alive
              else Dead
     Dead -> if adjCellsLiving >= 5
@@ -73,7 +73,7 @@ b56s23456 g m p state =
 -- inserts a diagonal dead cross into the CA map.
 crossGrid :: HexGrid -> [Position] -> CellularAutomata -> CellularAutomata
 crossGrid grid edgePoses ca =
-  L.foldl (\ca' k -> M.insert k Dead ca') ca $ L.union botLeftToTopRight topLeftToBotRight
+  L.foldl' (\ca' k -> M.insert k Dead ca') ca $ L.union botLeftToTopRight topLeftToBotRight
   where
     (rows,cols) = G.size grid
     botLeft = (0,0)
