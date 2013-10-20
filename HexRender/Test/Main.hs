@@ -16,7 +16,7 @@ import HexRender.Utilities
 import HexRender.Core.Model as HexModel
 
 import HexRender.Test.Helpers
-import HexRender.Test.Sprites
+import HexRender.Test.Data
 import HexRender.Test.GameModel
 import HexRender.Test.LevelGenerator
 
@@ -124,5 +124,6 @@ setupTestField surf tiles objects grid  = Field { fFieldDimensions = (1024-32, 8
                                                   fObjects = objects,
                                                   fGrid = grid,
                                                   fBackground = Primitive (15, 15, 15, 0),
-                                                  fTileBorder = NoBorder
+                                                  fTileBorder = NoBorder,
+                                                  fAnimations = [tardAnimation]
                                                 }

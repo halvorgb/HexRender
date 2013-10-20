@@ -11,7 +11,7 @@ import Math.Geometry.Grid.Hexagonal2
 import HexRender.Core.Model as HexModel
 import HexRender.Test.GameModel
 
-import HexRender.Test.Sprites
+import HexRender.Test.Data
 
 data CAState = Dead | Alive
              deriving (Eq)

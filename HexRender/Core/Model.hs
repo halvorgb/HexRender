@@ -1,6 +1,7 @@
 module HexRender.Core.Model where
 
 import Graphics.UI.SDL as SDL
+import Graphics.UI.SDL.TTF as TTF
 import qualified Data.Map as M
 
 import Math.Geometry.Grid.Hexagonal2
@@ -18,11 +19,15 @@ type HexGrid = RectHexGrid
 
 type AssetMap = M.Map AssetKey Asset
 type AssetKey = String
-data AssetKeyable = Image ResourcePath | Sound ResourcePath
+data AssetKeyable = Image ResourcePath | Sound ResourcePath | Font FontDesc ResourcePath Int
                   deriving (Eq, Show)
 
-data Asset = ImageAsset SDL.Surface | SoundAsset Int -- temporary PLACEholDER int
+data Asset = ImageAsset SDL.Surface | SoundAsset Int  -- int placeHolder....
+           | FontAsset TTF.Font
            deriving(Eq)
+
+
+type FontDesc = String
 
 
 data ZLevel = Zero | One | Two | Three | Four
@@ -50,6 +55,21 @@ data Tile = Tile { tSprite :: Resource,
                  }
           deriving(Eq)
             
+type AnimationSprite = (Resource, Position);
+type AnimationText =   (Resource, Position, String);
+
+data Animation = Animation { aSprite    :: Maybe AnimationSprite,
+                             aText      :: Maybe AnimationText,
+                             aTime      :: Int,
+                             aNextFrame :: Animation
+                           }
+               | Stop
+               deriving(Eq)
+
+
+
+
+
 data Object = Object { oSprite :: Resource,
                        oPosition :: Position,
                        oOffset :: Offset,
@@ -69,6 +89,7 @@ data Field = Field { fFieldDimensions :: Dimensions,
                      fObjects :: M.Map Position [Object],
                      fGrid :: HexGrid,
                      fBackground :: Resource,
-                     fTileBorder :: TileBorder
+                     fTileBorder :: TileBorder,
+                     fAnimations :: [Animation]
+
                    }
-                     

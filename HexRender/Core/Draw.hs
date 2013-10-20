@@ -1,4 +1,4 @@
-module HexRender.Core.Draw (drawField) where
+module HexRender.Core.Draw (drawField, drawSprite) where
 
 import HexRender.Core.Model
 import HexRender.Core.Assets
@@ -14,8 +14,7 @@ import Data.Map as M
 -- Takes a hexstate (a field and an assetmap), returns a possibly updated assetmap.
 -- Draws everythaangg.
 drawField :: HexState -> IO AssetMap
-drawField s@(f, m) = do
-  
+drawField s@(f, m) = do  
   -- filter out the tiles and objects that are actually shown.  
   s' <- foldM (\mp fn -> fn (f', mp)) m [drawBG, drawTiles, drawBorders, drawObjects]
   SDL.flip fieldSurface
